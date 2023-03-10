@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const lenderSchema = {
+  username: String,
   fullName: String,
   email: String,
-  nationality:String,
+  nationality: String,
   identityProof: String,
 };
 
