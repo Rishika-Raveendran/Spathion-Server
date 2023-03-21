@@ -78,6 +78,7 @@ router.route("/lender").get((req, res) => {
 router.route("/borrower").post(upload.array("documents", 9), (req, res) => {
   files = req.files;
   const {
+    walletAddress,
     username,
     fullName,
     email,
@@ -92,6 +93,7 @@ router.route("/borrower").post(upload.array("documents", 9), (req, res) => {
   } = req.body;
 
   const document = {
+    walletAddress,
     username,
     fullName,
     email,
@@ -120,6 +122,37 @@ router.route("/borrower").post(upload.array("documents", 9), (req, res) => {
     });
 });
 
+
+
+//-------------------------LOANS--------------------------------------------------------
+//Apply for loan
+router.route("/loan").post((req, res) => {
+  Invoice.updateOne(
+    { _id: req.body.id },
+    {
+      $set: {
+        loanApplied: true,
+      },
+    },
+    () => {}
+  )
+    .then(() => {
+      res.json({ msg: "Successful" });
+    })
+    .catch((err) => console.log(err));
+});
+
+//Fetch loans
+router.route("/loan").get((req, res) => {
+  let user = req.query.user;
+  Invoice.find({ username: user, loanApplied: true })
+    .then((response) => res.json(response))
+    .catch((err) => console.log(err));
+});
+
+//---------------------------------------------------------------------------------------
+
+//---------------------------------INVOICES-----------------------------------------------
 //Saving invoice details
 router.route("/invoice").post(upload.array("documents", 2), (req, res) => {
   files = req.files;
@@ -141,6 +174,7 @@ router.route("/invoice").post(upload.array("documents", 2), (req, res) => {
   arpaVerified = false;
   invoiceRejected = false;
   arpaRejected = false;
+  loanApplied = false;
   const document = {
     username,
     companyName,
@@ -158,6 +192,7 @@ router.route("/invoice").post(upload.array("documents", 2), (req, res) => {
     invoiceRejected,
     arpaVerified,
     arpaRejected,
+    loanApplied,
     files,
   };
   // Save the data to your database (MongoDB in this case)
@@ -174,10 +209,25 @@ router.route("/invoice").post(upload.array("documents", 2), (req, res) => {
         .send({ message: "Error uploading files and text fields" });
     });
 });
+//Getting all invoices
+router.route("/all-invoices").get((req, res) => {
+  let username = req.query.user;
+  Invoice.find({ username: username })
+    .then((response) => {
+      res.json(response);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
 
 //Getting unverified and unrejected invoice
 router.route("/invoice").get((req, res) => {
-  Invoice.find({ invoiceVerified: false, invoiceRejected: false })
+  Invoice.find({
+    invoiceVerified: false,
+    invoiceRejected: false,
+    loanApplied: true,
+  })
     .then((response) => {
       res.json(response);
     })
@@ -198,7 +248,7 @@ router.route("/invoice-approved").get((req, res) => {
 
 //Getting all unverified arpas
 router.route("/arpa").get((req, res) => {
-  Invoice.find({ arpaVerified: false, arpaRejected: false })
+  Invoice.find({ arpaVerified: false, arpaRejected: false, loanApplied: true })
     .then((response) => {
       res.json(response);
     })
@@ -220,6 +270,8 @@ router.route("/verify").post((req, res) => {
         $set: {
           invoiceVerified: status,
           invoiceRejected: !status,
+          arpaRejected: status ? false : true,
+          arpaVerified: status ? status : !status,
         },
       },
       function (err, res) {
@@ -255,6 +307,8 @@ router.route("/verify").post((req, res) => {
       });
   }
 });
+
+//----------------------------------------------------------------------------------------------------------
 
 //Getting all borrower profiles
 router.route("/borrower").get((req, res) => {

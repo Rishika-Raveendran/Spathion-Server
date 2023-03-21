@@ -14,10 +14,11 @@ const invoiceSchema = {
   advanceAmount: String,
   loanRequired: String,
   invoiceVerified: Boolean,
-  invoiceRejected:Boolean,
-  
+  invoiceRejected: Boolean,
+
   arpaVerified: Boolean,
-  arpaRejected:Boolean,
+  arpaRejected: Boolean,
+  loanApplied: Boolean,
   files: Array,
 };
 
