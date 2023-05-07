@@ -62,6 +62,17 @@ router.route("/lender").post((req, res) => {
     .catch((err) => console.log(err));
 });
 
+//Checking if a lender profile has been created give the email id of the user
+router.route("/profileStatus").get((req,res)=>{
+  Lender.find({email:req.query.user}).then(response=>{
+    if (response){
+      return res.json({profile:response,profileStatus:true})
+    }else{
+      return res.json({profile:{},profileStatus:false})
+    }
+  })
+})
+
 //Getting all lender profiles
 router.route("/lender").get((req, res) => {
   Lender.find()
@@ -122,6 +133,17 @@ router.route("/borrower").post(upload.array("documents", 9), (req, res) => {
     });
 });
 
+//Checking if a borrower profile has been created give the email id of the user
+router.route("/borrowerStatus").get((req,res)=>{
+
+  Borrower.find({email:req.query.user}).then(response=>{
+    if (response){
+      return res.json({profile:response,profileStatus:true})
+    }else{
+      return res.json({profile:{},profileStatus:false})
+    }
+  })
+})
 
 
 //-------------------------LOANS--------------------------------------------------------
